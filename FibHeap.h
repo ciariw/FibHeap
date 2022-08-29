@@ -33,7 +33,10 @@ class FibHeap{
         void deleteNode(unsigned long position);
         void cleanup();
 
+
     private:
+        void cleave(Node* victim);
+        void recurTrap(Node* N);
         void addChild(Node* parent, Node* child){
             parent->children.push_back(child);
             parent->degree ++;

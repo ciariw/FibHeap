@@ -5,8 +5,6 @@
 #include "FibHeap.h"
 #include <assert.h>
 
-
-
 FibHeap::FibHeap(std::vector<int>::iterator begin, std::vector<int>::iterator end, bool max) {
     std::vector<FibHeap::Node*> tempRoot;
     if(max){
@@ -38,13 +36,11 @@ FibHeap::FibHeap(std::vector<int>::iterator begin, std::vector<int>::iterator en
 
 }
 
-
 FibHeap::Node FibHeap::peak() {
     if (this->top != NULL){
         return *(this->top);
     }
 }
-
 
 FibHeap::Node* FibHeap::generateNode(int value){
     FibHeap::Node* n = new FibHeap::Node(value,0,0);
@@ -183,6 +179,95 @@ FibHeap::Node* FibHeap::compareNodes(FibHeap::Node *first, FibHeap::Node *second
     return NULL;
 }
 
+void FibHeap::cleave(FibHeap::Node* victim) {
+    // Get rid of all kids and add to root
+    for(FibHeap::Node* child:victim->children){
+        this->root.push_back(child);
+        child->parent = NULL;
+    }
+    // Node no longer has children, set to degree 0. Housekeeping
+    victim->degree = 0;
+    victim->children.clear();
+    victim->isMarked = false; // Not sure if this is necessary, just in case
+}
+void FibHeap::recurTrap(FibHeap::Node* A){
+    /*
+    Marked for removal, this node is moved to the root node. If it is already in the root (parent == null) dont do anything
+    */
+    A->isMarked = false;
+    if (A->parent != NULL){
+        this->root.push_back(A);
+        // Parent pilled section. Only works if you arent in the root
+        if (A->parent->isMarked) {
+            recurTrap(A->parent);
+            // If the parent is already marked, cut the parent out too
+        }else{
+            A->parent->isMarked = true;
+            // Mark the parent if it definitely wasnt marked before
+        }
+        // Go through parent's kids and look for this node. Delete the node from child list
+        for(unsigned long childIndex = 0; childIndex < A->parent->degree; childIndex++){
+            if (A->parent->children[childIndex] == A){
+                A->parent->degree--; // Decrease degree by one
+                A->parent->children.erase(A->parent->children.begin()+childIndex);
+                //Delete this index in the parent's child array
+                break;
+            }
+        }
+    }
+    A->parent = NULL; // It's in the root node now and doesnt have parents
+}
+
+void FibHeap::updateNode(FibHeap::Node &A, int updatedVal) {
+    // UNTESTED
+    if ((this->Max == 0 && updatedVal > A.val) || (this->Max == 1 && updatedVal < A.val)){
+        // Sorting for min, if updated value is higher, just return bc youre not serious.
+        // Sorting for max will return if the update is making smaller
+        return;
+    }else{
+        A.val = updatedVal; // Safe to update value
+        if(compareNodes(A.parent,&A) == &A){
+            /*
+             * If after updating, A is now greater than (when sorting for greater) the parent, do behavior
+            */
+            recurTrap(&A);
+            // Mark parent
+        }
+    }
+    /*
+     * Removed because it would be really inefficient to worry about increasing when sorting for decreasing.
+     * I could always just cleave by default but that can be something I add later
+     *
+     *
+     * if (A.parent == NULL) {
+        if (A.children.size() == 0) {
+            // No parents and no kids, no problem
+            A.val = updatedVal;
+
+            // EZ
+        }else{
+            A.val = updatedVal; // We give the node what it wants, but we still check child nodes
+            // loop through children and ensure we havent broken the invariant
+            for(FibHeap::Node* child:A.children){
+                if(compareNodes(&A,child) != &A){
+                    cleave(&A);
+                    break; // Break out of the loop. One child does not fit so we cleaved it. Now check for the new top
+                }
+                // Searching... Have not found a child node that breaks the invar. yet
+            }
+        }
+
+        if (compareNodes(this->top,&A) != this->top){
+            this->top = &A;
+        }
+        return;
+    }
+    if(compareNodes(A.parent,&A) == A.parent){
+        // If there is a parent, but updating the node does not change the invariant, just update the node
+
+    }*/
+}
+
 int main(){
     // By using vectors i can just fill in the empty spots with NULL, preserving the
     std::vector<int> n{2,3,-100,56,2,1,0,6,4,1,8,-59,2,2,3,4,3,3,3,};
@@ -190,6 +275,8 @@ int main(){
 
     FibHeap::Node* x = h.delMax();
     FibHeap::Node* y = h.delMax();
+    h.addNode(-200);
+
     FibHeap::Node* z = h.delMax();
     FibHeap::Node* u = h.delMax();
     FibHeap::Node* t = h.delMax();
