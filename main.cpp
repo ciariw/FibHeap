@@ -39,7 +39,7 @@ FibHeap::FibHeap(std::vector<int>::iterator begin, std::vector<int>::iterator en
 }
 
 
-FibHeap::Node FibHeap::peak(){
+FibHeap::Node FibHeap::peak() {
     if (this->top != NULL){
         return *(this->top);
     }
@@ -47,7 +47,7 @@ FibHeap::Node FibHeap::peak(){
 
 
 FibHeap::Node* FibHeap::generateNode(int value){
-    FibHeap::Node* n = new FibHeap::Node{value,0};
+    FibHeap::Node* n = new FibHeap::Node(value,0,0);
     this->nodeCount++;
     this->maxDegree = log2(nodeCount);
     return n;
@@ -63,14 +63,28 @@ void FibHeap::addNode(int nodeVal) {
     // Compare the new one to the top node, set the top node to the new node
 }
 
-FibHeap::Node* FibHeap::delMax() {
+void FibHeap::deleteNode(unsigned long position) {
+    this->root.erase(this->root.begin()+position);
+    this->nodeCount--;
+    this->maxDegree = log2(this->nodeCount);
+}
 
-    for(FibHeap::Node* child:this->top->children){
-        this->root.push_back(child);
-    }
+FibHeap::Node* FibHeap::delMax() {
     FibHeap::Node* tmpPtr = (this->top);
-    this->top = NULL;
+    for(unsigned long place = 0; place < this->root.size(); place++){
+        if(this->root[place] == tmpPtr){
+            deleteNode(place);
+            break;
+        }
+    }
+    for(FibHeap::Node* child:tmpPtr->children){
+        this->root.push_back(child);
+        child->parent = NULL;
+    }
+
     bool hadFoundFirst = false;
+
+    this->top = NULL;
 
     for(auto x = this->root.begin(); x != this->root.end(); x++){
         if(!hadFoundFirst){
@@ -85,6 +99,8 @@ FibHeap::Node* FibHeap::delMax() {
             }
         }
     }
+    std::cout << "Stop here " << std::endl;
+
     return tmpPtr;
 
 
@@ -92,7 +108,6 @@ FibHeap::Node* FibHeap::delMax() {
 
 void FibHeap::cleanup() {
     // Only called on delete top and on init
-    std::cout << (this->maxDegree)+1 << std::endl;
     FibHeap::Node* field [(this->maxDegree)+1];
     for(unsigned long int x = 0; x < (this->maxDegree)+1; x++){
         field[x] = NULL;
@@ -116,12 +131,15 @@ void FibHeap::cleanup() {
 
                 if (tNode == field[node->degree]) {
                     tNode->children.push_back(node);
+                    node->parent = tNode;
                 } else {
                     node->children.push_back(field[node->degree]);
+                    field[node->degree]->parent = node;
                 }
 
                 field[node->degree] = NULL;
-
+                // This should be enough, You wont lose any children while merging. Logic for taking away children
+                // Can be added later
                 tNode->degree++;
                 node = tNode;
                 std::cout << tNode->degree << std::endl;
@@ -130,15 +148,14 @@ void FibHeap::cleanup() {
         }
         ready = true;
     }
-
+    this->root.clear();
     for(auto x:field){
         if (x != NULL){
             std::cout << x->degree << std::endl;
+            root.push_back(x);
         }
 
     }
-
-
 
 
 }
@@ -160,6 +177,7 @@ FibHeap::Node* FibHeap::compareNodes(FibHeap::Node *first, FibHeap::Node *second
             return second;
         }else{
             return first;
+
         }
     }
     return NULL;
@@ -167,8 +185,16 @@ FibHeap::Node* FibHeap::compareNodes(FibHeap::Node *first, FibHeap::Node *second
 
 int main(){
     // By using vectors i can just fill in the empty spots with NULL, preserving the
-    std::vector<int> n{2,3,56,2,1,0,6,4,1,8,-59,2,2,3,4,3,3,3,-100};
+    std::vector<int> n{2,3,-100,56,2,1,0,6,4,1,8,-59,2,2,3,4,3,3,3,};
     FibHeap h(n.begin(),n.end(),0);
+
+    FibHeap::Node* x = h.delMax();
+    FibHeap::Node* y = h.delMax();
+    FibHeap::Node* z = h.delMax();
+    FibHeap::Node* u = h.delMax();
+    FibHeap::Node* t = h.delMax();
+    FibHeap::Node* r = h.delMax();
+    h.cleanup();
 
     return 1;
 }

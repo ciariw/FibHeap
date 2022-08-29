@@ -15,8 +15,12 @@ class FibHeap{
             int val;
             int degree;
             bool isMarked;
+            Node* parent ;
             vector<Node*> children;
-        }Node;
+            Node(int x, int y, bool z): val{x},degree{y},isMarked{z},parent{NULL}{
+
+            }
+        }Node ;
         Node* top;
         void merge(Node* A, Node* B);
         Node* generateNode(int value);
@@ -26,11 +30,10 @@ class FibHeap{
         Node peak();
         Node* delMax();
         void updateNode(Node& A,int updatedVal);
-
-        void merge();
+        void deleteNode(unsigned long position);
+        void cleanup();
 
     private:
-        void cleanup();
         void addChild(Node* parent, Node* child){
             parent->children.push_back(child);
             parent->degree ++;
