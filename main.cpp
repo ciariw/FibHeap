@@ -36,9 +36,9 @@ FibHeap::FibHeap(std::vector<int>::iterator begin, std::vector<int>::iterator en
 
 }
 
-FibHeap::Node FibHeap::peak() {
+FibHeap::Node* FibHeap::peak() {
     if (this->top != NULL){
-        return *(this->top);
+        return (this->top);
     }
 }
 
@@ -59,7 +59,7 @@ void FibHeap::addNode(int nodeVal) {
     // Compare the new one to the top node, set the top node to the new node
 }
 
-void FibHeap::deleteNode(unsigned long position) {
+void FibHeap::deleteNode(uint32_t position) {
     this->root.erase(this->root.begin()+position);
     this->nodeCount--;
     this->maxDegree = log2(this->nodeCount);
@@ -67,7 +67,7 @@ void FibHeap::deleteNode(unsigned long position) {
 
 FibHeap::Node* FibHeap::delMax() {
     FibHeap::Node* tmpPtr = (this->top);
-    for(unsigned long place = 0; place < this->root.size(); place++){
+    for(uint32_t place = 0; place < this->root.size(); place++){
         if(this->root[place] == tmpPtr){
             deleteNode(place);
             break;
@@ -105,7 +105,7 @@ FibHeap::Node* FibHeap::delMax() {
 void FibHeap::cleanup() {
     // Only called on delete top and on init
     FibHeap::Node* field [(this->maxDegree)+1];
-    for(unsigned long int x = 0; x < (this->maxDegree)+1; x++){
+    for(uint32_t x = 0; x < (this->maxDegree)+1; x++){
         field[x] = NULL;
     }
     // Pull from this->root, get the degree
@@ -114,7 +114,7 @@ void FibHeap::cleanup() {
         // Take this node, check if Null if null pass
         // if not null, combine, set node to new parent node
         bool ready = true;
-        long unsigned int offset = 0;
+        uint32_t offset = 0;
         while(ready)
         {
             if (field[node->degree] == NULL) {
@@ -206,7 +206,7 @@ void FibHeap::recurTrap(FibHeap::Node* A){
             // Mark the parent if it definitely wasnt marked before
         }
         // Go through parent's kids and look for this node. Delete the node from child list
-        for(unsigned long childIndex = 0; childIndex < A->parent->degree; childIndex++){
+        for(uint32_t childIndex = 0; childIndex < A->parent->degree; childIndex++){
             if (A->parent->children[childIndex] == A){
                 A->parent->degree--; // Decrease degree by one
                 A->parent->children.erase(A->parent->children.begin()+childIndex);
@@ -218,54 +218,25 @@ void FibHeap::recurTrap(FibHeap::Node* A){
     A->parent = NULL; // It's in the root node now and doesnt have parents
 }
 
-void FibHeap::updateNode(FibHeap::Node &A, int updatedVal) {
+void FibHeap::updateNode(FibHeap::Node* A, int updatedVal) {
     // UNTESTED
-    if ((this->Max == 0 && updatedVal > A.val) || (this->Max == 1 && updatedVal < A.val)){
+    if ((this->Max == 0 && updatedVal > A->val) || (this->Max == 1 && updatedVal < A->val)){
         // Sorting for min, if updated value is higher, just return bc youre not serious.
         // Sorting for max will return if the update is making smaller
         return;
     }else{
-        A.val = updatedVal; // Safe to update value
-        if(compareNodes(A.parent,&A) == &A){
+        A->val = updatedVal; // Safe to update value
+        if(compareNodes(this->top, A) == A){
+        this->top = A;
+        }
+    }
+        if(compareNodes(A->parent,A) == A){
             /*
              * If after updating, A is now greater than (when sorting for greater) the parent, do behavior
             */
-            recurTrap(&A);
+            recurTrap(A);
             // Mark parent
         }
-    }
-    /*
-     * Removed because it would be really inefficient to worry about increasing when sorting for decreasing.
-     * I could always just cleave by default but that can be something I add later
-     *
-     *
-     * if (A.parent == NULL) {
-        if (A.children.size() == 0) {
-            // No parents and no kids, no problem
-            A.val = updatedVal;
-
-            // EZ
-        }else{
-            A.val = updatedVal; // We give the node what it wants, but we still check child nodes
-            // loop through children and ensure we havent broken the invariant
-            for(FibHeap::Node* child:A.children){
-                if(compareNodes(&A,child) != &A){
-                    cleave(&A);
-                    break; // Break out of the loop. One child does not fit so we cleaved it. Now check for the new top
-                }
-                // Searching... Have not found a child node that breaks the invar. yet
-            }
-        }
-
-        if (compareNodes(this->top,&A) != this->top){
-            this->top = &A;
-        }
-        return;
-    }
-    if(compareNodes(A.parent,&A) == A.parent){
-        // If there is a parent, but updating the node does not change the invariant, just update the node
-
-    }*/
 }
 
 int main(){
@@ -280,7 +251,10 @@ int main(){
     FibHeap::Node* z = h.delMax();
     FibHeap::Node* u = h.delMax();
     FibHeap::Node* t = h.delMax();
-    FibHeap::Node* r = h.delMax();
+    FibHeap::Node* r = h.peak();
+    h.cleanup();
+    auto xyz = h.root[2]->children[2];
+    h.updateNode(h.root[2]->children[1],-200);
     h.cleanup();
 
     return 1;

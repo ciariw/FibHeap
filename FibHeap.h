@@ -27,12 +27,12 @@ class FibHeap{
         Node* compareNodes(Node* first, Node* second) const;
         bool Max;
         void addNode(int nodeVal);
-        Node peak();
+        Node* peak();
         Node* delMax();
-        void updateNode(Node& A,int updatedVal);
-        void deleteNode(unsigned long position);
+        void updateNode(Node* A,int updatedVal);
+        void deleteNode(uint32_t position);
         void cleanup();
-
+        vector<Node*> root;
 
     private:
         void cleave(Node* victim);
@@ -41,10 +41,10 @@ class FibHeap{
             parent->children.push_back(child);
             parent->degree ++;
         }
-        unsigned long maxDegree = 0;
+        uint32_t maxDegree = 0;
 
-        long int nodeCount = 0;
-        vector<Node*> root;
+        uint32_t nodeCount = 0;
+
 };
 
 #endif //FIBHEAP_FIBHEAP_H
